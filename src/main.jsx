@@ -78,7 +78,7 @@ function Intro({data,setData}){
     <div className="card span-12"><h3 className="section-title">Calculated Output</h3><div className="results">
       <Metric label="Avg. Wall Thickness" value={fmt(calc.avgT,4)} unit="mm"/><Metric label="Avg. Inner Radius" value={fmt(calc.avgRadius,4)} unit="mm"/>
       <Metric label="Avg. Volume / m" value={fmt(calc.avgVolPerM,8)} unit="m³"/><Metric label="Total Length" value={fmt(calc.totalL,2)} unit="m"/>
-      <Metric label="Total Section Volume" value={fmt(calc.totalV,8)} unit="m³"/><Metric label="Ri / t Ratio" value={fmt(calc.ratio,6)} unit=""/>
+      <Metric label="Total Section Volume" value={fmt(calc.totalV,8)} unit="m³"/><Metric label="Total Section Volume" value={fmt(calc.totalV*1000,3)} unit="Litres"/><Metric label="Ri / t Ratio" value={fmt(calc.ratio,6)} unit=""/>
     </div></div>
    </div>
  </Page>
@@ -100,7 +100,7 @@ function Air({intro,data,setData}){
     <Field label="Dimensional Coefficient K" value={data.K} unit="" onChange={v=>setData({...data,K:v})}/>
     <Field label="Change of Pressure ΔP" value={data.deltaP} unit="bar" onChange={v=>setData({...data,deltaP:v})}/>
     <Field label="Actual Volume of Water VA" value={data.actualLiters} unit="L" onChange={v=>setData({...data,actualLiters:v})}/>
-   </div><div className="btn-row"><button className="btn btn-primary" onClick={()=>setSaved(true)}>Calculate</button><button className="btn btn-secondary" onClick={()=>setData({...data,temp:27.5,pressure:98.02,K:1.02,deltaP:.5,actualLiters:431.2})}>Reset Workbook Values</button></div>{saved&&<p className="note">Calculation updated live. The original workbook's sample values are loaded by default.</p>}</div>
+   </div><div className="btn-row"><button className="btn btn-primary" onClick={()=>setSaved(true)}>Calculate</button><button className="btn btn-secondary" onClick={()=>setData({temp:"",pressure:"",K:"",deltaP:"",actualLiters:""})}>Clear</button></div>{saved&&<p className="note">Calculation updated live.</p>}</div>
    <div className="card span-5"><h3 className="section-title">Calculated Output</h3><div className="results">
     <Metric label="Isothermal Compressibility A" value={fmt(calc.A,6)} unit=""/>
     <Metric label="Inner Pipe Radius Ri" value={fmt(intro.avgRadius,4)} unit="mm"/>
@@ -167,8 +167,8 @@ function App(){
  const [intro,setIntro]=useState({fromJoint:"0.0 Km FT09",toJoint:"21.0 Km FT23",fromChainage:0,toChainage:20871.33,rows:[
   {od:114.3,t:6.4,length:1500},{od:"",t:"",length:""},{od:"",t:"",length:""},{od:"",t:"",length:""},{od:"",t:"",length:""},{od:"",t:"",length:0},{od:"",t:"",length:0}
  ]});
- const [air,setAir]=useState({temp:27.5,pressure:98.02,K:1.02,deltaP:.5,actualLiters:431.2});
- const [strength,setStrength]=useState({initialTemp:26.3,finalTemp:25.6,initialPressure:75.06,finalPressure:72.1});
+ const [air,setAir]=useState({temp:"",pressure:"",K:"",deltaP:"",actualLiters:""});
+ const [strength,setStrength]=useState({initialTemp:"",finalTemp:"",initialPressure:"",finalPressure:""});
  const introCalc=useMemo(()=>{let L=0,V=0,wt=0,ri=0;intro.rows.forEach(r=>{const od=+r.od||0,t=+r.t||0,l=+r.length||0,inn=Math.max(0,od-2*t);L+=l;V+=Math.PI/4*inn*inn*l/1e6;wt+=t*l;ri+=inn*l});const avgT=L?wt/L:0,avgInner=L?ri/L:0;return {avgT,avgRadius:avgInner/2,avgVolPerM:L?V/L:0,totalL:L,totalV:V,ratio:avgT?avgInner/2/avgT:0}},[intro]);
  const airCalc=useMemo(()=>{const A=aValue(+air.temp,+air.pressure),th=((.884*introCalc.avgRadius/introCalc.avgT)+A)*1e-6*introCalc.totalV*(+air.deltaP)*+air.K,lit=th*1000,ratio=(+air.actualLiters||0)/lit;return {A,theoretical:th,liters:lit,ratio,accepted:ratio<=1.02}},[introCalc,air]);
  const strengthCalc=useMemo(()=>{const dT=+strength.initialTemp-+strength.finalTemp,dP=+strength.finalPressure-+strength.initialPressure,A=aValue(+strength.finalTemp,+strength.finalPressure),B=bValue(+strength.finalTemp,+strength.finalPressure),accountable=B*dT/((.884*introCalc.ratio)+A),loss=Math.abs(dP)-accountable;return {dT,dP,A,B,accountable,loss,pass:loss<=.3}},[introCalc,strength]);
