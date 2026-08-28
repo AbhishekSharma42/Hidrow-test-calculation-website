@@ -8,7 +8,7 @@ Pages:
 3. Air Volume Calculation
 4. Strength & Leak Test
 
-The sample workbook values are preloaded and all visible calculations update live.
+All editable form fields start empty. Calculations update live as the user enters values.
 
 ## Run
 ```bash
